@@ -13,7 +13,7 @@ parse_args() {
 
 # Delete all connections and re-create network connection with default static-ip
 reset_network() {
-  LANIFACE=`/usr/local/bin/libsystem_cli --eth-interface`
+  LANIFACE=`/usr/bin/libsystem_cli --eth-interface`
   
   logger "Factory Restore: Removing existing network configurations"
   nmcli --terse connection show | cut -d : -f 1 | \
@@ -87,7 +87,7 @@ ln -sf /home/opal/proxy/config/config-vm7.ini /home/opal/proxy/config/vm7
 truncate -s 0 /home/opal/PASSWORD
 
 # Ensure opal system user has access to its own files
-log_info "Setting opal file ownership to opal"
+logger "Factory Restore: Setting opal file ownership to opal"
 chown -R opal /home/opal/
 
 # Removing users directory and all contents
