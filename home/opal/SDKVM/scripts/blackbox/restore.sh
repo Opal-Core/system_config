@@ -29,6 +29,67 @@ reset_network() {
 parse_args "$@"
 
 # Terminating existing connections and workspaces on restore
+# Copy default config file and dont overwrite if exists
+
+# Stop all the opal proxy servers
+if [[ -f "/usr/sbin/update-service" ]]; then
+    echo "Stopping running opal proxy servers"
+    if [[ -e "/etc/service/vm0" ]]; then
+        sudo update-service -r /var/lib/supervise/vm0
+    fi
+
+    if [[ -e "/etc/service/vm1" ]]; then
+        sudo update-service -r /var/lib/supervise/vm1
+    fi
+
+    if [[ -e "/etc/service/vm2" ]]; then
+        sudo update-service -r /var/lib/supervise/vm2
+    fi
+
+    if [[ -e "/etc/service/vm3" ]]; then
+        sudo update-service -r /var/lib/supervise/vm3
+    fi
+
+    if [[ -e "/etc/service/vm4" ]]; then
+        sudo update-service -r /var/lib/supervise/vm4
+    fi
+
+    if [[ -e "/etc/service/vm5" ]]; then
+        sudo update-service -r /var/lib/supervise/vm5
+    fi
+
+    if [[ -e "/etc/service/vm6" ]]; then
+        sudo update-service -r /var/lib/supervise/vm6
+    fi
+
+    if [[ -e "/etc/service/vm7" ]]; then
+        sudo update-service -r /var/lib/supervise/vm7
+    fi
+fi
+
+# Delete all the config files and proxy server links from /home/opal/proxy/config
+find /home/opal/proxy/config/ -maxdepth 1 -type f,l -delete
+
+# Copy default files back to /home/opal/proxy/config
+cp -n /home/opal/proxy/config/default/config-vm?.ini /home/opal/proxy/config
+
+# Link proxy server to default configs
+ln -sf /home/opal/proxy/config/config-vm0.ini /home/opal/proxy/config/vm0
+ln -sf /home/opal/proxy/config/config-vm1.ini /home/opal/proxy/config/vm1
+ln -sf /home/opal/proxy/config/config-vm2.ini /home/opal/proxy/config/vm2
+ln -sf /home/opal/proxy/config/config-vm3.ini /home/opal/proxy/config/vm3
+ln -sf /home/opal/proxy/config/config-vm4.ini /home/opal/proxy/config/vm4
+ln -sf /home/opal/proxy/config/config-vm5.ini /home/opal/proxy/config/vm5
+ln -sf /home/opal/proxy/config/config-vm6.ini /home/opal/proxy/config/vm6
+ln -sf /home/opal/proxy/config/config-vm7.ini /home/opal/proxy/config/vm7
+
+# Reset PASSWORD file to empty
+truncate -s 0 /home/opal/PASSWORD
+
+# Ensure opal system user has access to its own files
+log_info "Setting opal file ownership to opal"
+chown -R opal /home/opal/
+
 # Removing users directory and all contents
 # Removing OSD settings
 # Remove Boxilla files
