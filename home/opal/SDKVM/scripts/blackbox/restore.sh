@@ -20,7 +20,7 @@ reset_network() {
     while read name; do nmcli connection delete "$name"; done
 
   logger "Factory Restore: Setting default IP address for interface: [$LANIFACE]"
-  nmcli con add type ethernet con-name 'static-ip' ifname $LANIFACE ipv4.method manual ipv4.addresses 192.168.1.21/24 gw4 192.168.1.1
+  nmcli con add type ethernet con-name 'static-ip' ifname $LANIFACE ipv4.method manual ipv4.addresses 192.168.1.10/24 gw4 192.168.1.1
 
   logger "Factory Restore: Setting default static-ip for $LANIFACE as active connection"
   nmcli con up id 'static-ip'
