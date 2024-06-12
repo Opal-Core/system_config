@@ -20,10 +20,6 @@ echo "0" > /tmp/session_id
 #logger "Openbox autostart: Starting internal rest handler service"
 #/usr/bin/startresthandler.sh
 
-# Start Hotkeys handler
-#logger "Openbox autostart: Starting BB Hotkeys service"
-#/usr/bin/starthotkeys.sh
-
 logger "OSD Post Connect: Adding background images using feh" 
 feh --bg-scale /home/opal/.config/openbox/background.png &
 /home/opal/.config/openbox/disable_sleep.sh
