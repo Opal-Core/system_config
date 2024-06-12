@@ -30,4 +30,4 @@ feh --bg-scale /home/opal/.config/openbox/background.png &
 
 # We must again disable ctrl alt + function key 
 logger "Disabling [Ctrl + Alt + Function key] combinations using xmodmap"
-xmodmap /etc/custom.Xmodmap > /home/opal/SDKVM/logs/xmodmap.log 2>&1
+xmodmap /etc/custom.Xmodmap 2>&1 | logger
