@@ -110,7 +110,6 @@
     <keybind key="C-W-A-t">
       <action name="Execute">
         <command>/usr/bin/x-terminal-emulator</command>
-        <command>/usr/bin/minimise_osd.sh</command>
       </action>
     </keybind>  
     <keybind key="W-s">
@@ -120,7 +119,7 @@
     </keybind>
     <keybind key="C-W-A-s">
       <action name="Execute">
-        <command>/home/opal/SDKVM/scripts/system_manager_launcher.sh</command>
+        <command>/home/opal/SDKVM/scripts/blackbox/system_manager_launcher.sh</command>
       </action>
     </keybind>
     <!-- Keybindings for window switching -->
