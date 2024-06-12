@@ -1,0 +1,6 @@
+[Unit]
+Description=Alt Log Rotate
+
+[Service]
+Type=oneshot
+ExecStart=/home/opal/SDKVM/scripts/blackbox/alt_logrotate.sh

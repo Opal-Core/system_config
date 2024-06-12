@@ -1,0 +1,9 @@
+[Unit]
+Description=Alternative Logrotate monitoring
+
+[Timer]
+OnBootSec=5m
+OnUnitActiveSec=1d
+
+[Install]
+WantedBy=timers.target
