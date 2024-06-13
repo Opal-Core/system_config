@@ -7,6 +7,9 @@ setxkbmap -option srvrkeys:none
 logger "Setting session ID"
 echo "0" > /tmp/session_id
 
+logger "Check if certificate needs regeneration"
+/home/opal/gateway/generate_certificate_nginx.sh localhost &
+
 # Start Discovery
 #logger "Openbox autostart: Starting Discovery service"
 #/usr/bin/startdiscovery.sh
