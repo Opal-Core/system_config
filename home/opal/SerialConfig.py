@@ -51,6 +51,7 @@ def print_help_main(io, args):
     io.write('                          number in range\r\n'.encode('utf-8'))
     io.write('print net                 Print network configuration and details\r\n'.encode('utf-8'))
     io.write('config net                Modify configuration for ethernet interfaces\r\n'.encode('utf-8'))
+    io.write('factory reset             Reset system to factory defaults\r\n'.encode('utf-8'))
     io.write('------------------------------------------------------------------------------'.encode('utf-8'))
 
 def do_reboot(io, args):
@@ -428,7 +429,7 @@ main_menu = {
         r'config (vm[0-7])$'   : do_config_one,
         r'print net$'          : do_print_net,
         r'config net$'         : do_config_net,
-        r'factory_reset$'      : do_factory_reset,
+        r'factory reset$'      : do_factory_reset,
 }
 
 def lookup(cmd, re_dict):
