@@ -270,6 +270,8 @@ def do_config_net(io, args):
                     else:
                         io.write('\r\nChanges discarded'.encode('utf-8'))
                         break
+                else:
+                    break
             try:
                 idx = int(cmd)
                 interface = ethernet_interfaces[idx]
