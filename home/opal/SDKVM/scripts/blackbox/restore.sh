@@ -84,7 +84,7 @@ ln -sf /home/opal/proxy/config/config-vm6.ini /home/opal/proxy/config/vm6
 ln -sf /home/opal/proxy/config/config-vm7.ini /home/opal/proxy/config/vm7
 
 # Reset PASSWORD file to empty
-truncate -s 0 /home/opal/PASSWORD
+echo 'admin' > /home/opal/PASSWORD
 
 # Ensure opal system user has access to its own files
 logger "Factory Restore: Setting opal file ownership to opal"
