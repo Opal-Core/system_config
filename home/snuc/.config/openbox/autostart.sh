@@ -2,7 +2,7 @@
 
 # initiallise_log
 logger "Openbox: Disabling Virtual Terminal Switching"
-setxkbmap -option srvrkeys:none
+setxkbmap -verbose -option srvrkeys:none
 
 logger "Openbox: Adding background images using feh" 
 feh --bg-scale /home/snuc/.config/openbox/background.png &
