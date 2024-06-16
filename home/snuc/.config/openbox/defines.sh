@@ -1,6 +1,6 @@
 #!/bin/bash
-export OPENBOX_STARTUP_LOG=/home/opal/.config/openbox/openbox_startup.log
-export OPENBOX_PATH="/home/opal/.config/openbox"
+export OPENBOX_STARTUP_LOG=/home/snuc/.config/openbox/openbox_startup.log
+export OPENBOX_PATH="/home/snuc/.config/openbox"
 
 
 timestamp() {

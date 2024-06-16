@@ -114,7 +114,7 @@
     </keybind> 
     <keybind key="C-W-A-s">
       <action name="Execute">
-        <command>/home/opal/SDKVM/scripts/blackbox/system_manager_launcher.sh</command>
+        <command>/usr/bin/sudo /home/opal/SDKVM/scripts/blackbox/system_manager_launcher.sh</command>
       </action>
     </keybind>
     <!-- Keybindings for window switching -->

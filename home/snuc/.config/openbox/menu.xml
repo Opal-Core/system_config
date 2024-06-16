@@ -33,13 +33,13 @@
   <separator />
   <item label="Shutdown">
     <action name="Execute">
-      <command>/home/opal/.config/openbox/shutdown_system.sh</command>
+      <command>/home/snuc/.config/openbox/shutdown_system.sh</command>
     </action>
   </item>
   <separator />
   <item label="Reboot">
     <action name="Execute">
-      <command>/home/opal/.config/openbox/reboot_system.sh</command>
+      <command>/home/snuc/.config/openbox/reboot_system.sh</command>
     </action>
   </item>
 </menu>

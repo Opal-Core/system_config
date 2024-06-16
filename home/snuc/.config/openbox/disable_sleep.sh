@@ -1,5 +1,5 @@
 #!/bin/bash
-source /home/opal/.config/openbox/defines.sh
+source /home/snuc/.config/openbox/defines.sh
 
 write_to_log "Disabling system sleep"
 xset -dpms     # Disable DPMS (Energy Star) features
