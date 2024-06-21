@@ -197,7 +197,7 @@ def do_print_netplan(io, netplan, interface):
                     for a in netplan['network']['ethernets'][interface]['nameservers']['addresses']:
                         io.write('\r\n  nameserver: {}'.format(a).encode('utf-8'))
     else:
-        io.write('\r\n  automatic (DHCP)'.encode('utf-8'))
+        io.write('\r\n  Static'.encode('utf-8'))
 
 def do_print_net(io, args):
     netplan = None
@@ -209,7 +209,7 @@ def do_print_net(io, args):
 
     gateways = netifaces.gateways()
     for interface in netifaces.interfaces():
-        if interface.startswith('en'):
+        if interface.startswith('e'):
             io.write('\r\n\r\n----------------------------------------'.encode('utf-8'))
             io.write('\r\ninterface: {}'.format(interface).encode('utf-8'))
             ip4_addrs = get_interface_ip4_addrs(netifaces.ifaddresses(interface))
@@ -243,7 +243,7 @@ def do_config_net(io, args):
 
     ethernet_interfaces = []
     for interface in netifaces.interfaces():
-        if interface.startswith('en'):
+        if interface.startswith('e'):
             ethernet_interfaces.append(interface)
 
     hasChanged = False
