@@ -201,11 +201,11 @@ def do_print_netplan(io, netplan, interface):
 
 def do_print_net(io, args):
     netplan = None
-    try:
-        with open('/etc/netplan/01-network-manager-all.yaml') as f:
-            netplan = yaml.load(f, Loader=yaml.FullLoader)
-    except OSError:
-        io.write('\r\nCould not open network configuration file {}'.format(args[0]).encode('utf-8'))
+    #try:
+    #    with open('/etc/netplan/01-network-manager-all.yaml') as f:
+    #        netplan = yaml.load(f, Loader=yaml.FullLoader)
+    #except OSError:
+    #    io.write('\r\nCould not open network configuration file {}'.format(args[0]).encode('utf-8'))
 
     gateways = netifaces.gateways()
     for interface in netifaces.interfaces():
@@ -235,11 +235,11 @@ def do_print_net(io, args):
 
 def do_config_net(io, args):
     netplan = None
-    try:
-        with open('/etc/netplan/01-network-manager-all.yaml') as f:
-            netplan = yaml.load(f, Loader=yaml.FullLoader)
-    except OSError:
-        io.write('\r\nCould not open network configuration file {}'.format('/etc/netplan/01-network-manager-all.yaml').encode('utf-8'))
+    #try:
+    #    with open('/etc/netplan/01-network-manager-all.yaml') as f:
+    #        netplan = yaml.load(f, Loader=yaml.FullLoader)
+    #except OSError:
+    #    io.write('\r\nCould not open network configuration file {}'.format('/etc/netplan/01-network-manager-all.yaml').encode('utf-8'))
 
     ethernet_interfaces = []
     for interface in netifaces.interfaces():
@@ -263,9 +263,75 @@ def do_config_net(io, args):
                     if cmd in {'y', 'yes'}:
                         io.write('\r\n> Network connectivity may be briefly interrupted'.encode('utf-8'))
                         io.write('\r\n> Saving and applying changes'.encode('utf-8'))
-                        with open('/etc/netplan/01-network-manager-all.yaml', 'w') as f:
-                            yaml.dump(netplan, f)
-                        os.system('netplan apply')
+                        #with open('/etc/netplan/01-network-manager-all.yaml', 'w') as f:
+                        #    yaml.dump(netplan, f)
+                        #os.system('netplan apply')
+
+
+                        get_connection_name = f"nmcli -g name con" 
+                        connection_name_process = subprocess.Popen(get_connection_name, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        # Get output and error messages
+                        output, error = connection_name_process.communicate()
+
+                        #if connection_name_process.returncode != 0:
+                        print(str(output))
+                        connection_name_string = str(output, encoding='utf-8').rstrip('\n')
+                        print(connection_name_string)
+
+                        connection_name_string_with_breaks = connection_name_string.splitlines(keepends=True)
+                        print(connection_name_string_with_breaks)
+                        #syslog.syslog(syslog.LOG_INFO, f'connection_name_string with breaks: {connection_name_string_with_breaks}')
+
+                        if len(connection_name_string_with_breaks) > 1:
+                            for line in connection_name_string_with_breaks:
+                                connection_name_string_line = line.rstrip('\n')
+                                delete_existing_connection = f"nmcli connection delete id '{connection_name_string_line}'"
+
+                                delete_existing_connection_process = subprocess.Popen(delete_existing_connection, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                                # Get output and error messages
+                                output, error = delete_existing_connection_process.communicate()
+                                print(str(output, encoding='utf-8').rstrip('\n'))   
+                        else:
+                            delete_existing_connection = f"nmcli connection delete id '{connection_name_string}'"
+
+                            delete_existing_connection_process = subprocess.Popen(delete_existing_connection, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                            # Get output and error messages
+                            output, error = delete_existing_connection_process.communicate()
+                            print(str(output, encoding='utf-8').rstrip('\n'))        
+
+                        subnet_mask_cidr = netmask_to_cidr(nm)
+
+                        #command = f"nmcli con mod {connection_name_string} ipv4.address {ip_address}/{subnet_mask_cidr} ipv4.gateway {gateway} ipv4.dns '{dns} {backup_dns}'"
+
+                        command = f"nmcli con add type ethernet con-name static-ip ifname '{interface}' ipv4.method manual ipv4.address '{ip}' gw4 '{gw}' ipv4.dns '{n1}, {n2}'"
+                        
+                        nmcli_command_process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                        # Get output and error messages
+                        output, error = nmcli_command_process.communicate()
+
+                        #if nmcli_command_process.returncode == 0:
+                        print(str(output, encoding='utf-8').rstrip('\n'))
+                        #else:
+                        print(str(error, encoding='utf-8').rstrip('\n'))                        
+                        
+                        time.sleep(250/1000)
+                        print('250 milliseconds passed')
+                        command = f"nmcli con up id static-ip"
+
+                        
+                        nmcli_command_process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                        # Get output and error messages
+                        output, error = nmcli_command_process.communicate()
+
+                        #if nmcli_command_process.returncode == 0:
+                        print(str(output, encoding='utf-8').rstrip('\n'))
+                        #else:
+                        print(str(error, encoding='utf-8').rstrip('\n'))
+
                         break
                     else:
                         io.write('\r\nChanges discarded'.encode('utf-8'))
@@ -279,19 +345,19 @@ def do_config_net(io, args):
                 while True:
                     io.write('\r\n\r\n{}:'.format(interface).encode('utf-8'))
                     io.write('\r\n----------------------------------------'.encode('utf-8'))
-                    io.write('\r\n0. Automatic (DHCP)'.encode('utf-8'))
-                    io.write('\r\n1. Manual'.encode('utf-8'))
+                    #io.write('\r\n0. Automatic (DHCP)'.encode('utf-8'))
+                    io.write('\r\n0. Manual'.encode('utf-8'))
                     io.write('\r\n> Enter option number (b to go back): '.encode('utf-8'))
 
                     cmd = io_echo_read_until(io, b'\r').strip()
                     if cmd == 'b':
                         break
+                    #elif cmd == '0':
+                        #netplan['network']['ethernets'][interface] = {}
+                        #netplan['network']['ethernets'][interface] = { 'dhcp4': True }
+                        #hasChanged = True
+                        #break
                     elif cmd == '0':
-                        netplan['network']['ethernets'][interface] = {}
-                        netplan['network']['ethernets'][interface] = { 'dhcp4': True }
-                        hasChanged = True
-                        break
-                    elif cmd == '1':
                         ip = ''
                         nm = ''
                         gw = ''
@@ -379,14 +445,14 @@ def do_config_net(io, args):
                             break
 
                         ip += '/' + str(netmask_to_cidr(nm))
-                        if 'ethernets' not in netplan['network']:
-                            netplan['network']['ethernets'] = {}
+                        #if 'ethernets' not in netplan['network']:
+                        #    netplan['network']['ethernets'] = {}
 
-                        netplan['network']['ethernets'][interface] = {}
-                        netplan['network']['ethernets'][interface] = { 'addresses': [ip] }
+                        #netplan['network']['ethernets'][interface] = {}
+                        #netplan['network']['ethernets'][interface] = { 'addresses': [ip] }
 
-                        if (len(gw)):
-                            netplan['network']['ethernets'][interface].update({ 'routes': [{'to': 'default', 'via': gw }] })
+                        #if (len(gw)):
+                        #   netplan['network']['ethernets'][interface].update({ 'routes': [{'to': 'default', 'via': gw }] })
 
                         ns = []
                         if (len(n1)):
@@ -394,8 +460,8 @@ def do_config_net(io, args):
                         if (len(n2)):
                             ns.append(n2)
 
-                        if (len(ns)):
-                            netplan['network']['ethernets'][interface].update({ 'nameservers': {'addresses': ns } })
+                        #if (len(ns)):
+                        #    netplan['network']['ethernets'][interface].update({ 'nameservers': {'addresses': ns } })
                         # print(yaml.dump(netplan))
                         hasChanged = True
                         break
