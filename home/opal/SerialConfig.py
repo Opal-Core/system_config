@@ -201,15 +201,24 @@ def do_print_netplan(io, netplan, interface):
 
 def do_print_net(io, args):
     netplan = None
-    #try:
-    #    with open('/etc/netplan/01-network-manager-all.yaml') as f:
-    #        netplan = yaml.load(f, Loader=yaml.FullLoader)
-    #except OSError:
-    #    io.write('\r\nCould not open network configuration file {}'.format(args[0]).encode('utf-8'))
 
     gateways = netifaces.gateways()
+    # call libsystem_cli --eth-interface to find correct interface
+    command = f'sudo libsystem_cli --eth-interface'
+    process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Get output and error messages
+    output, error = process.communicate()
+
+    if process.returncode != 0:
+        print(f'Execution failed with error: {str(error)}')
+    else:
+        print('Successfully executed libsystem_cli --eth-interface')
+        libsystem_cli_interface = (output).decode('utf-8')
+        print(f'libsystem_cli_interface: {libsystem_cli_interface}')
+
     for interface in netifaces.interfaces():
-        if interface.startswith('e'):
+        if str(interface) == (str((libsystem_cli_interface).rstrip("\n"))):
             io.write('\r\n\r\n----------------------------------------'.encode('utf-8'))
             io.write('\r\ninterface: {}'.format(interface).encode('utf-8'))
             ip4_addrs = get_interface_ip4_addrs(netifaces.ifaddresses(interface))
@@ -235,15 +244,25 @@ def do_print_net(io, args):
 
 def do_config_net(io, args):
     netplan = None
-    #try:
-    #    with open('/etc/netplan/01-network-manager-all.yaml') as f:
-    #        netplan = yaml.load(f, Loader=yaml.FullLoader)
-    #except OSError:
-    #    io.write('\r\nCould not open network configuration file {}'.format('/etc/netplan/01-network-manager-all.yaml').encode('utf-8'))
-
+    
     ethernet_interfaces = []
+    
+    # call libsystem_cli --eth-interface to find correct interface
+    command = f'sudo libsystem_cli --eth-interface'
+    process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Get output and error messages
+    output, error = process.communicate()
+
+    if process.returncode != 0:
+        print(f'Execution failed with error: {str(error)}')
+    else:
+        print('Successfully executed libsystem_cli --eth-interface')
+        libsystem_cli_interface = (output).decode('utf-8')
+        print(f'libsystem_cli_interface: {libsystem_cli_interface}')
+
     for interface in netifaces.interfaces():
-        if interface.startswith('e'):
+        if str(interface) == (str((libsystem_cli_interface).rstrip("\n"))):
             ethernet_interfaces.append(interface)
 
     hasChanged = False
@@ -263,9 +282,6 @@ def do_config_net(io, args):
                     if cmd in {'y', 'yes'}:
                         io.write('\r\n> Network connectivity may be briefly interrupted'.encode('utf-8'))
                         io.write('\r\n> Saving and applying changes'.encode('utf-8'))
-                        #with open('/etc/netplan/01-network-manager-all.yaml', 'w') as f:
-                        #    yaml.dump(netplan, f)
-                        #os.system('netplan apply')
 
 
                         get_connection_name = f"nmcli -g name con" 
@@ -352,11 +368,6 @@ def do_config_net(io, args):
                     cmd = io_echo_read_until(io, b'\r').strip()
                     if cmd == 'b':
                         break
-                    #elif cmd == '0':
-                        #netplan['network']['ethernets'][interface] = {}
-                        #netplan['network']['ethernets'][interface] = { 'dhcp4': True }
-                        #hasChanged = True
-                        #break
                     elif cmd == '0':
                         ip = ''
                         nm = ''
@@ -445,14 +456,6 @@ def do_config_net(io, args):
                             break
 
                         ip += '/' + str(netmask_to_cidr(nm))
-                        #if 'ethernets' not in netplan['network']:
-                        #    netplan['network']['ethernets'] = {}
-
-                        #netplan['network']['ethernets'][interface] = {}
-                        #netplan['network']['ethernets'][interface] = { 'addresses': [ip] }
-
-                        #if (len(gw)):
-                        #   netplan['network']['ethernets'][interface].update({ 'routes': [{'to': 'default', 'via': gw }] })
 
                         ns = []
                         if (len(n1)):
@@ -460,9 +463,6 @@ def do_config_net(io, args):
                         if (len(n2)):
                             ns.append(n2)
 
-                        #if (len(ns)):
-                        #    netplan['network']['ethernets'][interface].update({ 'nameservers': {'addresses': ns } })
-                        # print(yaml.dump(netplan))
                         hasChanged = True
                         break
                     else:
