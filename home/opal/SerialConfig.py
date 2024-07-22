@@ -1,6 +1,7 @@
 #SerialConfig.py
 
 import configparser
+from datetime import datetime
 import io
 import ipaddress
 import os
@@ -15,6 +16,18 @@ import struct
 import subprocess
 import sys
 import time
+import psutil
+
+
+def find_writable_media():
+    parts = psutil.disk_partitions()
+    parts.sort(key=lambda _: _.mountpoint)
+    for p in parts:
+        if p.device.startswith('/dev/sd') and p.mountpoint.startswith('/media/'):
+            for opt in p.opts.split(','):
+                if opt == 'rw' or opt == 'w':
+                    return p.mountpoint
+
 
 def io_echo_read_until(io, expected):
     cmd = ''
@@ -52,6 +65,8 @@ def print_help_main(io, args):
     io.write('print net                 Print network configuration and details\r\n'.encode('utf-8'))
     io.write('config net                Modify configuration for ethernet interfaces\r\n'.encode('utf-8'))
     io.write('factory reset             Reset system to factory defaults\r\n'.encode('utf-8'))
+    io.write('version                   Print Opal software version\r\n'.encode('utf-8'))
+    io.write('get diag                  Retrieve diagnostics and write to external usb drive\r\n'.encode('utf-8'))
     io.write('------------------------------------------------------------------------------'.encode('utf-8'))
 
 def do_reboot(io, args):
@@ -126,7 +141,7 @@ def do_config_one(io, args):
     config.read(filename)
     while True:
         io.write('\r\n'.encode('utf-8'))
-        do_print_sections(io, config, None) 
+        do_print_sections(io, config, None)
         io.write('\r\n> Enter section number (b to go back): '.encode('utf-8'))
         cmd = io_echo_read_until(io, b'\r').strip()
         if (cmd == 'b'):
@@ -244,9 +259,9 @@ def do_print_net(io, args):
 
 def do_config_net(io, args):
     netplan = None
-    
+
     ethernet_interfaces = []
-    
+
     # call libsystem_cli --eth-interface to find correct interface
     command = f'sudo libsystem_cli --eth-interface'
     process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -284,7 +299,7 @@ def do_config_net(io, args):
                         io.write('\r\n> Saving and applying changes'.encode('utf-8'))
 
 
-                        get_connection_name = f"nmcli -g name con" 
+                        get_connection_name = f"nmcli -g name con"
                         connection_name_process = subprocess.Popen(get_connection_name, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         # Get output and error messages
                         output, error = connection_name_process.communicate()
@@ -307,7 +322,7 @@ def do_config_net(io, args):
 
                                 # Get output and error messages
                                 output, error = delete_existing_connection_process.communicate()
-                                print(str(output, encoding='utf-8').rstrip('\n'))   
+                                print(str(output, encoding='utf-8').rstrip('\n'))
                         else:
                             delete_existing_connection = f"nmcli connection delete id '{connection_name_string}'"
 
@@ -315,14 +330,14 @@ def do_config_net(io, args):
 
                             # Get output and error messages
                             output, error = delete_existing_connection_process.communicate()
-                            print(str(output, encoding='utf-8').rstrip('\n'))        
+                            print(str(output, encoding='utf-8').rstrip('\n'))
 
                         subnet_mask_cidr = netmask_to_cidr(nm)
 
                         #command = f"nmcli con mod {connection_name_string} ipv4.address {ip_address}/{subnet_mask_cidr} ipv4.gateway {gateway} ipv4.dns '{dns} {backup_dns}'"
 
                         command = f"nmcli con add type ethernet con-name static-ip ifname '{interface}' ipv4.method manual ipv4.address '{ip}' gw4 '{gw}' ipv4.dns '{n1}, {n2}'"
-                        
+
                         nmcli_command_process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                         # Get output and error messages
@@ -331,13 +346,12 @@ def do_config_net(io, args):
                         #if nmcli_command_process.returncode == 0:
                         print(str(output, encoding='utf-8').rstrip('\n'))
                         #else:
-                        print(str(error, encoding='utf-8').rstrip('\n'))                        
-                        
+                        print(str(error, encoding='utf-8').rstrip('\n'))
+
                         time.sleep(250/1000)
                         print('250 milliseconds passed')
                         command = f"nmcli con up id static-ip"
 
-                        
                         nmcli_command_process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                         # Get output and error messages
@@ -485,6 +499,28 @@ def do_factory_reset(io, args):
         io.write('\r\nFactory reset canceled'.encode('utf-8'))
 
 
+def do_print_version(io, args):
+    with open('/home/opal/VERSION', 'r') as f:
+        version = f.readline().rstrip()
+        io.write('\r\nVersion: {}'.format(version).encode('utf-8'))
+
+
+def do_get_diag(io, args):
+    path = find_writable_media()
+    if path != None:
+        io.write(f'\r\nFound writable media at {path}'.encode('utf-8'))
+        time = datetime.now().strftime('%Y%m%d_%H%M%S')
+        path = f'{path}/emd3000gediag_{time}.zip'
+        subprocess.run(f'/home/opal/SDKVM/scripts/blackbox/diagnostics.sh {path}', shell=True, check=False, executable='/bin/bash')
+        os.sync()
+        if (os.path.isfile(path)):
+            io.write(f'\r\nDiagnostics written to: {path}'.encode('utf-8'))
+        else:
+            io.write(f'\r\nFailed to write diagnostics archive'.encode('utf-8'))
+    else:
+        io.write(f'\r\nNo writable media found. Please connect a USB storage device to Opal unit'.encode('utf-8'))
+
+
 main_menu = {
         r'help$|h$|\?$'        : print_help_main,
         r'reboot$'             : do_reboot,
@@ -498,6 +534,8 @@ main_menu = {
         r'print net$'          : do_print_net,
         r'config net$'         : do_config_net,
         r'factory reset$'      : do_factory_reset,
+        r'version$'            : do_print_version,
+        r'get diag$'           : do_get_diag,
 }
 
 def lookup(cmd, re_dict):
