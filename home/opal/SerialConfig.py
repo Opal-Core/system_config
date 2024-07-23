@@ -138,6 +138,7 @@ def do_config_one(io, args):
     hasChanged = False
     filename = '/home/opal/proxy/config/{}'.format(args[0])
     config = configparser.ConfigParser()
+    config.optionxform=str
     config.read(filename)
     while True:
         io.write('\r\n'.encode('utf-8'))
