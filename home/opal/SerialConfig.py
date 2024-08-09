@@ -349,7 +349,7 @@ def do_config_net(io, args):
                         #else:
                         print(str(error, encoding='utf-8').rstrip('\n'))
 
-                        time.sleep(250/1000)
+                        time.sleep(0.500)
                         print('250 milliseconds passed')
                         command = f"nmcli con up id static-ip"
 
@@ -362,6 +362,8 @@ def do_config_net(io, args):
                         print(str(output, encoding='utf-8').rstrip('\n'))
                         #else:
                         print(str(error, encoding='utf-8').rstrip('\n'))
+
+                        subprocess.run(f'/home/opal/gateway/generate_certificate_nginx.sh {ip} true', shell=True, check=False, executable='/bin/bash')
 
                         break
                     else:
